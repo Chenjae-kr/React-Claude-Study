@@ -6,6 +6,11 @@ export interface UserRegisterRequest {
   password: string
 }
 
+export interface LoginRequest {
+  email: string
+  password: string
+}
+
 export interface UserResponse {
   id: number
   name: string
@@ -27,6 +32,24 @@ export const authApi = {
 
     if (!response.ok) {
       throw new Error(result.error || '회원가입에 실패했습니다.')
+    }
+
+    return result
+  },
+
+  async login(data: LoginRequest): Promise<UserResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.error || '로그인에 실패했습니다.')
     }
 
     return result
