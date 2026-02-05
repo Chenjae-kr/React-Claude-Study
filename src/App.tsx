@@ -1,12 +1,37 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Container, CssBaseline, AppBar, Toolbar, Typography } from '@mui/material'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { Container, CssBaseline, AppBar, Toolbar, Typography, Button, Box } from '@mui/material'
 import PostList from './components/board/PostList'
 import PostForm from './components/board/PostForm'
 import PostDetail from './components/board/PostDetail'
+import RegisterForm from './components/auth/RegisterForm'
 import PostEdit from './components/board/PostEdit'
 import type { Post } from './types/post'
 import { postApi, type PostCreateRequest } from './api/postApi'
+
+function NavBar() {
+  const navigate = useNavigate()
+
+  return (
+    <AppBar position="static" sx={{ mb: 3 }}>
+      <Toolbar>
+        <Typography
+          variant="h6"
+          component="a"
+          href="/"
+          sx={{ color: 'inherit', textDecoration: 'none', flexGrow: 1 }}
+        >
+          React 게시판
+        </Typography>
+        <Box>
+          <Button color="inherit" onClick={() => navigate('/register')}>
+            회원가입
+          </Button>
+        </Box>
+      </Toolbar>
+    </AppBar>
+  )
+}
 
 function App() {
   const [posts, setPosts] = useState<Post[]>([])
@@ -61,18 +86,13 @@ function App() {
   return (
     <BrowserRouter>
       <CssBaseline />
-      <AppBar position="static" sx={{ mb: 3 }}>
-        <Toolbar>
-          <Typography variant="h6" component="a" href="/" sx={{ color: 'inherit', textDecoration: 'none' }}>
-            React 게시판
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <NavBar />
       <Container maxWidth="md">
         <Routes>
           <Route path="/" element={<PostList posts={posts} loading={loading} />} />
           <Route path="/write" element={<PostForm onSubmit={handleAddPost} />} />
           <Route path="/post/:id" element={<PostDetail onDelete={handleDeletePost} />} />
+          <Route path="/register" element={<RegisterForm />} />
           <Route path="/edit/:id" element={<PostEdit onSubmit={handleEditPost} />} />
         </Routes>
       </Container>
