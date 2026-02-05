@@ -77,6 +77,9 @@ export default function PostDetail({ onDelete }: PostDetailProps) {
         <Button variant="outlined" onClick={() => navigate('/')}>
           목록
         </Button>
+        <Button variant="outlined" color="primary" onClick={() => navigate(`/edit/${post.id}`)}>
+          수정
+        </Button>
         <Button variant="outlined" color="error" onClick={handleDelete}>
           삭제
         </Button>

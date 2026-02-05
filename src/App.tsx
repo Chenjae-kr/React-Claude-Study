@@ -4,6 +4,7 @@ import { Container, CssBaseline, AppBar, Toolbar, Typography } from '@mui/materi
 import PostList from './components/board/PostList'
 import PostForm from './components/board/PostForm'
 import PostDetail from './components/board/PostDetail'
+import PostEdit from './components/board/PostEdit'
 import type { Post } from './types/post'
 import { postApi, type PostCreateRequest } from './api/postApi'
 
@@ -37,6 +38,16 @@ function App() {
     }
   }
 
+  const handleEditPost = async (id: number, post: PostCreateRequest) => {
+    try {
+      await postApi.update(id, post)
+      await fetchPosts()
+    } catch (error) {
+      console.error('게시글 수정 실패:', error)
+      alert('게시글 수정에 실패했습니다.')
+    }
+  }
+
   const handleDeletePost = async (id: number) => {
     try {
       await postApi.delete(id)
@@ -62,6 +73,7 @@ function App() {
           <Route path="/" element={<PostList posts={posts} loading={loading} />} />
           <Route path="/write" element={<PostForm onSubmit={handleAddPost} />} />
           <Route path="/post/:id" element={<PostDetail onDelete={handleDeletePost} />} />
+          <Route path="/edit/:id" element={<PostEdit onSubmit={handleEditPost} />} />
         </Routes>
       </Container>
     </BrowserRouter>
