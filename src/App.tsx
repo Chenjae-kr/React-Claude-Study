@@ -5,10 +5,17 @@ import PostList from './components/board/PostList'
 import PostForm from './components/board/PostForm'
 import PostDetail from './components/board/PostDetail'
 import RegisterForm from './components/auth/RegisterForm'
+import LoginForm from './components/auth/LoginForm'
 import type { Post } from './types/post'
 import { postApi, type PostCreateRequest } from './api/postApi'
+import type { UserResponse } from './api/authApi'
 
-function NavBar() {
+interface NavBarProps {
+  user: UserResponse | null
+  onLogout: () => void
+}
+
+function NavBar({ user, onLogout }: NavBarProps) {
   const navigate = useNavigate()
 
   return (
@@ -23,9 +30,25 @@ function NavBar() {
           React 게시판
         </Typography>
         <Box>
-          <Button color="inherit" onClick={() => navigate('/register')}>
-            회원가입
-          </Button>
+          {user ? (
+            <>
+              <Typography component="span" sx={{ mr: 2 }}>
+                {user.name}님
+              </Typography>
+              <Button color="inherit" onClick={onLogout}>
+                로그아웃
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button color="inherit" onClick={() => navigate('/login')}>
+                로그인
+              </Button>
+              <Button color="inherit" onClick={() => navigate('/register')}>
+                회원가입
+              </Button>
+            </>
+          )}
         </Box>
       </Toolbar>
     </AppBar>
@@ -35,6 +58,10 @@ function NavBar() {
 function App() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<UserResponse | null>(() => {
+    const saved = localStorage.getItem('user')
+    return saved ? JSON.parse(saved) : null
+  })
 
   const fetchPosts = async () => {
     try {
@@ -51,6 +78,16 @@ function App() {
   useEffect(() => {
     fetchPosts()
   }, [])
+
+  const handleLoginSuccess = (loggedInUser: UserResponse) => {
+    setUser(loggedInUser)
+    localStorage.setItem('user', JSON.stringify(loggedInUser))
+  }
+
+  const handleLogout = () => {
+    setUser(null)
+    localStorage.removeItem('user')
+  }
 
   const handleAddPost = async (newPost: PostCreateRequest) => {
     try {
@@ -75,13 +112,14 @@ function App() {
   return (
     <BrowserRouter>
       <CssBaseline />
-      <NavBar />
+      <NavBar user={user} onLogout={handleLogout} />
       <Container maxWidth="md">
         <Routes>
           <Route path="/" element={<PostList posts={posts} loading={loading} />} />
           <Route path="/write" element={<PostForm onSubmit={handleAddPost} />} />
           <Route path="/post/:id" element={<PostDetail onDelete={handleDeletePost} />} />
           <Route path="/register" element={<RegisterForm />} />
+          <Route path="/login" element={<LoginForm onLoginSuccess={handleLoginSuccess} />} />
         </Routes>
       </Container>
     </BrowserRouter>
