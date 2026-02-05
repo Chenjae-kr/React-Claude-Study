@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Box, TextField, Button, Typography, Paper } from '@mui/material'
+import { Box, TextField, Button, Typography, Paper, CircularProgress } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import type { Post } from '../../types/post'
+import type { PostCreateRequest } from '../../api/postApi'
 
 interface PostFormProps {
-  onSubmit: (post: Omit<Post, 'id' | 'createdAt'>) => void
+  onSubmit: (post: PostCreateRequest) => Promise<void>
 }
 
 export default function PostForm({ onSubmit }: PostFormProps) {
@@ -12,15 +12,23 @@ export default function PostForm({ onSubmit }: PostFormProps) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [author, setAuthor] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !content.trim() || !author.trim()) {
       alert('모든 필드를 입력해주세요.')
       return
     }
-    onSubmit({ title, content, author })
-    navigate('/')
+    try {
+      setSubmitting(true)
+      await onSubmit({ title, content, author })
+      navigate('/')
+    } catch (error) {
+      console.error('게시글 등록 실패:', error)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -36,6 +44,7 @@ export default function PostForm({ onSubmit }: PostFormProps) {
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
             sx={{ mb: 2 }}
+            disabled={submitting}
           />
           <TextField
             label="제목"
@@ -43,6 +52,7 @@ export default function PostForm({ onSubmit }: PostFormProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             sx={{ mb: 2 }}
+            disabled={submitting}
           />
           <TextField
             label="내용"
@@ -52,12 +62,13 @@ export default function PostForm({ onSubmit }: PostFormProps) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             sx={{ mb: 2 }}
+            disabled={submitting}
           />
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button type="submit" variant="contained">
-              등록
+            <Button type="submit" variant="contained" disabled={submitting}>
+              {submitting ? <CircularProgress size={24} /> : '등록'}
             </Button>
-            <Button variant="outlined" onClick={() => navigate('/')}>
+            <Button variant="outlined" onClick={() => navigate('/')} disabled={submitting}>
               취소
             </Button>
           </Box>

@@ -1,33 +1,50 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Container, CssBaseline, AppBar, Toolbar, Typography } from '@mui/material'
 import PostList from './components/board/PostList'
 import PostForm from './components/board/PostForm'
 import PostDetail from './components/board/PostDetail'
 import type { Post } from './types/post'
+import { postApi, type PostCreateRequest } from './api/postApi'
 
 function App() {
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: 1,
-      title: '첫 번째 게시글입니다',
-      content: '안녕하세요! 첫 번째 게시글 내용입니다.',
-      author: '관리자',
-      createdAt: '2024-01-01',
-    },
-  ])
+  const [posts, setPosts] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const handleAddPost = (newPost: Omit<Post, 'id' | 'createdAt'>) => {
-    const post: Post = {
-      ...newPost,
-      id: posts.length > 0 ? Math.max(...posts.map((p) => p.id)) + 1 : 1,
-      createdAt: new Date().toISOString().split('T')[0],
+  const fetchPosts = async () => {
+    try {
+      setLoading(true)
+      const data = await postApi.getAll()
+      setPosts(data)
+    } catch (error) {
+      console.error('게시글 로딩 실패:', error)
+    } finally {
+      setLoading(false)
     }
-    setPosts([post, ...posts])
   }
 
-  const handleDeletePost = (id: number) => {
-    setPosts(posts.filter((p) => p.id !== id))
+  useEffect(() => {
+    fetchPosts()
+  }, [])
+
+  const handleAddPost = async (newPost: PostCreateRequest) => {
+    try {
+      await postApi.create(newPost)
+      await fetchPosts()
+    } catch (error) {
+      console.error('게시글 생성 실패:', error)
+      alert('게시글 생성에 실패했습니다.')
+    }
+  }
+
+  const handleDeletePost = async (id: number) => {
+    try {
+      await postApi.delete(id)
+      await fetchPosts()
+    } catch (error) {
+      console.error('게시글 삭제 실패:', error)
+      alert('게시글 삭제에 실패했습니다.')
+    }
   }
 
   return (
@@ -42,9 +59,9 @@ function App() {
       </AppBar>
       <Container maxWidth="md">
         <Routes>
-          <Route path="/" element={<PostList posts={posts} />} />
+          <Route path="/" element={<PostList posts={posts} loading={loading} />} />
           <Route path="/write" element={<PostForm onSubmit={handleAddPost} />} />
-          <Route path="/post/:id" element={<PostDetail posts={posts} onDelete={handleDeletePost} />} />
+          <Route path="/post/:id" element={<PostDetail onDelete={handleDeletePost} />} />
         </Routes>
       </Container>
     </BrowserRouter>

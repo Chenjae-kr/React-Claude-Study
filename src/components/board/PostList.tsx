@@ -9,15 +9,17 @@ import {
   Button,
   Typography,
   Box,
+  CircularProgress,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import type { Post } from '../../types/post'
 
 interface PostListProps {
   posts: Post[]
+  loading?: boolean
 }
 
-export default function PostList({ posts }: PostListProps) {
+export default function PostList({ posts, loading = false }: PostListProps) {
   const navigate = useNavigate()
 
   return (
@@ -39,7 +41,13 @@ export default function PostList({ posts }: PostListProps) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {posts.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                  <CircularProgress size={24} />
+                </TableCell>
+              </TableRow>
+            ) : posts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} align="center">
                   게시글이 없습니다.
